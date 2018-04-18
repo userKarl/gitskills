@@ -35,7 +35,9 @@
 
 5、删除
 
-	$ git rm test.txt
+	$ git rm test.txt 删除文件
+
+	$ git rm -r test  删除文件夹
 
 	$ git commit -m "remove test.txt"
 
