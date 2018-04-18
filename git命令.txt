@@ -1,0 +1,159 @@
+1、创建本地仓库并关联远程仓库
+
+（1）创建空目录：$ mkdir learngit
+
+（2）通过git init命令把这个目录变成Git可以管理的仓库：$ git init
+
+
+2、添加文件至本地仓库
+
+   $ git add readme.txt
+
+   $ git commit -m "wrote a readme file"
+
+3、版本回退
+
+（1）查看log：$ git log （$ git log --pretty=oneline）
+
+（2）回退至head版本：$ git reset --hard HEAD^
+
+（3）回退至特定版本（根据commit id）：$ git reset --hard 3628164。
+
+	注：版本号没必要写全，前几位就可以了，Git会自动去找。
+	
+	HEAD指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset --hard commit_id。
+
+	穿梭前，用git log可以查看提交历史，以便确定要回退到哪个版本。
+
+	要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。
+
+4、修改和撤销修改
+
+（1）修改：git add，git commit
+
+（2）撤销修改：$ git checkout -- readme.txt
+
+5、删除
+
+	$ git rm test.txt
+
+	$ git commit -m "remove test.txt"
+
+	命令git rm用于删除一个文件。如果一个文件已经被提交到版本库，那么你永远不用担心误删，但是要小心，你只能恢复文件到最新版本，你会丢失最近一次提交后你修改的内容。
+
+6、关联远程仓库
+
+	关联：$ git remote add origin git@github.com:michaelliao/learngit.git
+
+	把本地库的所有内容推送到远程库：$ git push -u origin master
+
+7、从远程库克隆
+
+	$ git clone git@github.com:michaelliao/gitskills.git
+
+8、创建与合并分支
+
+	首先，我们创建dev分支，然后切换到dev分支：$ git checkout -b dev
+
+	    git checkout命令加上-b参数表示创建并切换，相当于以下两条命令：$ git branch dev，$ git checkout dev
+
+	然后，用git branch命令查看当前分支：$ git branch
+
+	然后，我们就可以在dev分支上正常提交，比如对readme.txt做个修改，加上一行：Creating a new branch is quick.
+
+	然后提交：$ git add readme.txt ，$ git commit -m "branch test"
+
+	现在，dev分支的工作完成，我们就可以切换回master分支：$ git checkout master
+
+	现在，我们把dev分支的工作成果合并到master分支上：$ git merge dev
+
+	合并完成后，就可以放心地删除dev分支了：$ git branch -d dev
+
+	总结：
+
+		查看分支：git branch
+
+		创建分支：git branch <name>
+
+		切换分支：git checkout <name>
+
+		创建+切换分支：git checkout -b <name>
+
+		合并某分支到当前分支：git merge <name>
+
+		删除分支：git branch -d <name>
+
+9、分支管理策略
+	
+	通常，合并分支时，如果可能，Git会用Fast forward模式，但这种模式下，删除分支后，会丢掉分支信息。
+
+	如果要强制禁用Fast forward模式，Git就会在merge时生成一个新的commit，这样，从分支历史上就可以看出分支信息。
+
+	下面我们实战一下--no-ff方式的git merge：
+
+	首先，仍然创建并切换dev分支：	$ git checkout -b dev	
+
+	修改readme.txt文件，并提交一个新的commit：$ git add readme.txt ，$ git commit -m "add merge"
+
+	现在，我们切换回master：$ git checkout master
+
+	准备合并dev分支，请注意--no-ff参数，表示禁用Fast forward：$ git merge --no-ff -m "merge with no-ff" dev
+
+	因为本次合并要创建一个新的commit，所以加上-m参数，把commit描述写进去。
+
+	合并后，我们用git log看看分支历史：$ git log --graph --pretty=oneline --abbrev-commit
+
+10、BUG分支
+	
+	使用此方式的前提是：当前工作分支由于某种原因暂时不能提交。因此需要使用stash暂存起来。
+
+	每个bug都可以通过一个新的临时分支来修复，修复后，合并分支，然后将临时分支删除
+
+	当你接到一个修复一个代号101的bug的任务时，很自然地，你想创建一个分支issue-101来修复它，但是，等等，当前正在dev上进行的工作还没有提交，
+
+	此时Git还提供了一个stash功能，可以把当前工作现场“储藏”起来，等以后恢复现场后继续工作：$ git stash
+
+	首先确定要在哪个分支上修复bug，假定需要在master分支上修复，就从master创建临时分支：
+
+	$ git checkout master，$ git checkout -b issue-101
+
+	现在修复bug，需要把“Git is free software ...”改为“Git is a free software ...”，然后提交：
+
+	$ git add readme.txt ，$ git commit -m "fix bug 101"
+
+	修复完成后，切换到master分支，并完成合并，最后删除issue-101分支：
+
+	$ git checkout master，$ git merge --no-ff -m "merged bug fix 101" issue-101，$ git branch -d issue-101
+
+	现在，是时候接着回到dev分支干活了：$ git checkout dev
+
+	工作区是干净的，刚才的工作现场存到哪去了？用git stash list命令看看：$ git stash list
+
+	工作现场还在，Git把stash内容存在某个地方了，但是需要恢复一下，有两个办法：
+
+	一是用git stash apply恢复，但是恢复后，stash内容并不删除，你需要用git stash drop来删除；
+
+	另一种方式是用git stash pop，恢复的同时把stash内容也删了。
+
+11、标签
+
+	创建标签：
+
+		命令git tag <name>用于新建一个标签，默认为HEAD，也可以指定一个commit id；
+
+		git tag -a <tagname> -m "blablabla..."可以指定标签信息；
+
+		git tag -s <tagname> -m "blablabla..."可以用PGP签名标签；
+
+		命令git tag可以查看所有标签。
+
+	管理标签：
+
+		命令git push origin <tagname>可以推送一个本地标签；
+
+		命令git push origin --tags可以推送全部未推送过的本地标签；
+
+		命令git tag -d <tagname>可以删除一个本地标签；
+
+		命令git push origin :refs/tags/<tagname>可以删除一个远程标签。
+
